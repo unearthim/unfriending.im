@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>unfriending.im | A Digital Monument</title>
+    <style>
+        :root {
+            --bg-color: #1e1b4b;
+            --text-color: #a7a3d2;
+            --title-color: #e0e7ff;
+            --link-color: #fcd34d;
+            --link-hover-color: #facc15;
+            --border-color: #312e74;
+            --dot-color: #FFFFFF;
+            --line-color: #5a578f;
+            --line-hover-color: #fcd34d;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 3rem;
+            box-sizing: border-box;
+        }
+
+        .title-container {
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--title-color);
+            text-shadow: 0 0 15px rgba(224, 231, 255, 0.3);
+        }
+
+        h2 {
+            font-family: 'Lora', serif;
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--text-color);
+            margin: 0.5rem 0 0 0;
+            font-style: italic;
+        }
+
+        .footer-container {
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            pointer-events: auto;
+        }
+        
+        .footer-container a {
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        .footer-container a:hover .foundry-link-text {
+             color: var(--link-color);
+        }
+
+        .foundry-link-text {
+            color: var(--link-color);
+            text-shadow: 0 0 5px rgba(252, 211, 77, 0.5);
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        
+        #statement-link {
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            transition: color 0.2s;
+        }
+        #statement-link:hover {
+            color: var(--link-color);
+        }
+
+        #statement-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(30, 27, 75, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #statement-modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .statement-content {
+            max-width: 600px;
+            padding: 2.5rem;
+            font-family: 'Lora', serif;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+        .statement-content h3 {
+            font-family: 'Lora', serif;
+            color: var(--title-color);
+            font-size: 1.5rem;
+            margin: 0 0 1.5rem 0;
+            font-weight: 600;
+        }
+        .statement-content p {
+            margin-bottom: 1.5rem;
+        }
+        .statement-content strong {
+            color: var(--title-color);
+            font-weight: 600;
+        }
+        .statement-content em {
+            color: var(--link-color);
+            font-style: normal;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Lora:ital,wght@0,400;0,600;1,400&family=Poppins:wght@600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <canvas id="exhibit-canvas"></canvas>
+
+    <div class="overlay">
+        <div class="title-container">
+            <h1>unfriending.im</h1>
+            <h2>A monument to the quiet click.</h2>
+        </div>
+
+        <div class="footer-container">
+            <p><a id="statement-link">Read Artist's Statement</a></p>
+            <p>An artifact unearthed and preserved by <a href="https://unearth.im" target="_blank" rel="noopener noreferrer"><span class="foundry-link-text">unearth.im</span></a></p>
+        </div>
+    </div>
+
+    <div id="statement-modal">
+        <div class="statement-content">
+            <h3>Artist's Statement: The Quiet Click</h3>
+            <p>
+                The social web gave us rituals for connection, but it also gave us quieter, more complex rituals for disconnection. Words like <em>unfriending</em>, <em>unfollowing</em>, or <em>shadowbanning</em> are not in any user manual; they are the folk terms we created to describe the act of curating our digital lives.
+            </p>
+            <p>
+                <strong>Unfriending</strong>—the Oxford English Dictionary's Word of the Year for 2009—is perhaps the most potent of these. It is not a loud confrontation, but a silent, deliberate act of removal. It is the quiet click of a digital door closing.
+            </p>
+            <p>
+                This artifact, <em>unfriending.im</em>, is an interactive monument to that ritual. The constellation begins complete, a network of established bonds. By <em>clicking on a connection</em>, you are re-enacting that quiet click, and for a moment, making the constellation a little sparser, a little more silent.
+            </p>
+            <p style="text-align: center; font-style: italic; opacity: 0.7; margin-top: 2rem;">(click anywhere to close)</p>
+        </div>
+    </div>
+
+
+    <script>
+        const canvas = document.getElementById('exhibit-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let connections = [];
+        const NUM_CONNECTIONS = 40;
+        let mouse = { x: 0, y: 0 };
+        let hoveredConnection = null;
+        let audioCtx; // <-- NEW: Audio context variable
+
+        const TOP_MARGIN = 150;
+        const BOTTOM_MARGIN = 150;
+        const DOT_RADIUS = 6;
+        const DOT_COLOR = '#FFFFFF';
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            init();
+        }
+
+        function init() {
+            connections = [];
+            const interactiveHeight = height - TOP_MARGIN - BOTTOM_MARGIN;
+
+            for (let i = 0; i < NUM_CONNECTIONS; i++) {
+                const length = 70 + Math.random() * 70;
+                const angle = Math.random() * Math.PI * 2;
+                const midX = Math.random() * width;
+                const midY = TOP_MARGIN + Math.random() * interactiveHeight;
+
+                const x1 = midX + Math.cos(angle) * length / 2;
+                const y1 = midY + Math.sin(angle) * length / 2;
+                const x2 = midX - Math.cos(angle) * length / 2;
+                const y2 = midY - Math.sin(angle) * length / 2;
+                
+                connections.push({
+                    angle,
+                    dot1: { x: x1, y: y1, targetX: x1, targetY: y1, vx: (Math.random() - 0.5) * 0.1, vy: (Math.random() - 0.5) * 0.1 },
+                    dot2: { x: x2, y: y2, targetX: x2, targetY: y2, vx: (Math.random() - 0.5) * 0.1, vy: (Math.random() - 0.5) * 0.1 },
+                    isSevered: false,
+                    severTime: 0,
+                    alpha: 1
+                });
+            }
+        }
+
+        // --- NEW SOUND LOGIC ---
+        function playSeverSound() {
+            if (!audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            // A single, lower, resonant note (E4)
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(329.63, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime); // Start slightly louder
+            
+            // A clean, quick decay to sound like a "click" or "thump"
+            oscillator.start(audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.75);
+            oscillator.stop(audioCtx.currentTime + 0.75);
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            const now = Date.now();
+            hoveredConnection = getHoveredConnection(mouse.x, mouse.y);
+
+            connections.forEach(conn => {
+                if (conn.isSevered) {
+                    conn.dot1.x += (conn.dot1.targetX - conn.dot1.x) * 0.01;
+                    conn.dot1.y += (conn.dot1.targetY - conn.dot1.y) * 0.01;
+                    conn.dot2.x += (conn.dot2.targetX - conn.dot2.x) * 0.01;
+                    conn.dot2.y += (conn.dot2.targetY - conn.dot2.y) * 0.01;
+                    
+                    const elapsed = now - conn.severTime;
+                    conn.alpha = (elapsed < 500) ? 1 - (elapsed / 500) : 0;
+                } else {
+                    [conn.dot1, conn.dot2].forEach(dot => {
+                        dot.x += dot.vx;
+                        dot.y += dot.vy;
+
+                        const topBound = TOP_MARGIN;
+                        const bottomBound = height - BOTTOM_MARGIN;
+                        
+                        if (dot.x < DOT_RADIUS || dot.x > width - DOT_RADIUS) dot.vx *= -1;
+                        if (dot.y < topBound || dot.y > bottomBound) dot.vy *= -1;
+                    });
+                }
+                
+                if (conn.alpha > 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(conn.dot1.x, conn.dot1.y);
+                    ctx.lineTo(conn.dot2.x, conn.dot2.y);
+                    ctx.lineWidth = 2;
+                    
+                    ctx.setLineDash(conn.isSevered ? [5, 5] : []);
+                    ctx.strokeStyle = (conn === hoveredConnection && !conn.isSevered) ? 'var(--line-hover-color)' : `rgba(90, 87, 143, ${conn.alpha})`;
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                ctx.beginPath();
+                ctx.arc(conn.dot1.x, conn.dot1.y, DOT_RADIUS, 0, Math.PI * 2);
+                ctx.fillStyle = DOT_COLOR;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(conn.dot2.x, conn.dot2.y, DOT_RADIUS, 0, Math.PI * 2);
+                ctx.fillStyle = DOT_COLOR;
+                ctx.fill();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        function getHoveredConnection(x, y) {
+            let closestConn = null;
+            let minDistance = 20;
+
+            for (let i = connections.length - 1; i >= 0; i--) {
+                const conn = connections[i];
+                if (conn.isSevered) continue;
+
+                const { dot1, dot2 } = conn;
+                const len_sq = (dot2.x - dot1.x) * (dot2.x - dot1.x) + (dot2.y - dot1.y) * (dot2.y - dot1.y);
+                if (len_sq === 0) continue;
+
+                let t = ((x - dot1.x) * (dot2.x - dot1.x) + (y - dot1.y) * (dot2.y - dot1.y)) / len_sq;
+                t = Math.max(0, Math.min(1, t));
+
+                const projX = dot1.x + t * (dot2.x - dot1.x);
+                const projY = dot1.y + t * (dot2.y - dot1.y);
+                const dist = Math.sqrt((x - projX) * (x - projX) + (y - projY) * (y - projY));
+
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestConn = conn;
+                }
+            }
+            return closestConn;
+        }
+        
+        canvas.addEventListener('mousemove', e => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            canvas.style.cursor = getHoveredConnection(mouse.x, mouse.y) ? 'pointer' : 'default';
+        });
+
+        canvas.addEventListener('click', e => {
+            // --- NEW: Initialize Audio Context on first user interaction ---
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const clickedConn = getHoveredConnection(e.clientX, e.clientY);
+            if (clickedConn && !clickedConn.isSevered) {
+                playSeverSound(); // <-- Play the sound on sever
+                clickedConn.isSevered = true;
+                clickedConn.severTime = Date.now();
+                
+                const flyDist = 300;
+                const angle = Math.atan2(clickedConn.dot2.y - clickedConn.dot1.y, clickedConn.dot2.x - clickedConn.dot1.x);
+                clickedConn.dot1.targetX = clickedConn.dot1.x - Math.cos(angle) * flyDist;
+                clickedConn.dot1.targetY = clickedConn.dot1.y - Math.sin(angle) * flyDist;
+                clickedConn.dot2.targetX = clickedConn.dot2.x + Math.cos(angle) * flyDist;
+                clickedConn.dot2.targetY = clickedConn.dot2.y + Math.sin(angle) * flyDist;
+            }
+        });
+        
+        const statementLink = document.getElementById('statement-link');
+        const statementModal = document.getElementById('statement-modal');
+
+        statementLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            statementModal.classList.add('visible');
+        });
+
+        statementModal.addEventListener('click', () => {
+            statementModal.classList.remove('visible');
+        });
+
+        window.addEventListener('resize', resize, false);
+        resize();
+        animate();
+
+    </script>
+</body>
+</html>
+
